@@ -7,6 +7,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 
+nltk.download('punkt')
+nltk.download('stopwords')
+
 df = pd.read_csv("output.csv")
 
 def clean_text(text):
