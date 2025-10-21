@@ -1,3 +1,4 @@
+import streamlit as st
 import pandas as pd
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -51,4 +52,19 @@ def recommend(book_title, df=df, top_n=5):
     
     return recommended_books
 
-print(recommend("Sword Art Online Alternative – Gun Gale Online"))
+st.title("Book Recommendation System")
+
+st.write("""
+Enter a book title and get similar book recommendations!
+""")
+
+book_input = st.text_input("Enter Book Title:")
+
+if st.button("Recommend"):
+    if book_input:
+        results = recommend(book_input)
+        st.subheader("Recommended Books:")
+        for i, rec in enumerate(results, 1):
+            st.write(f"{i}. {rec}")
+    else:
+        st.warning("Please enter a book title to get recommendations.")
