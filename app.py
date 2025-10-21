@@ -16,9 +16,9 @@ def clean_text(text):
     
     text = text.lower()
     text = re.sub(r'[^a-z\s]', '', text)
-    words = nltk.word_tokenize(text)
-
-    stop_words = set(nltk.corpus.stopwords.words('english')) 
+    words = text.split()
+    
+    stop_words = set(nltk.corpus.stopwords.words('english'))
     words = [w for w in words if w not in stop_words]
 
     return ' '.join(words)
