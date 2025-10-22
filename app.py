@@ -10,6 +10,7 @@ nltk.download('punkt')
 nltk.download('stopwords')
 
 df = pd.read_csv("output.csv")
+df_original = df.copy()
 
 def clean_text(text):
     if not isinstance(text, str):
@@ -48,8 +49,10 @@ def recommend(book_title, df=df, top_n=5):
     sim_scores = list(enumerate(cos_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:top_n+1]
     
-    recommended_books = [df['title'][i] for i, score in sim_scores]
-    
+    recommended_books = [df_original['title'][i] for i, score in sim_scores]
+    #recommended_books = [book.title() for book in recommended_books]
+
+
     return recommended_books
 
 st.title("Book Recommendation System")
@@ -64,7 +67,35 @@ if st.button("Recommend"):
     if book_input:
         results = recommend(book_input)
         st.subheader("Recommended Books:")
-        for i, rec in enumerate(results, 1):
-            st.write(f"{i}. {rec}")
+        
+        for rec in results:
+            book_info = df_original[df_original['title'] == rec].iloc[0]
+            with st.expander(rec):
+                st.write(f"**Author:** {book_info.get('authors', 'Unknown')}")
+                st.write(f"**Description:** {book_info.get('description', 'No description available.')}")
+                
+    else:
+        st.warning("Please enter a book title to get recommendations.") 
+
+if st.button("Show 2D Map"):
+    if book_input:
+        target_book = clean_text(book_input)
+        target_idx = df[df['title'] == target_book].index[0]
+
+        top_similar = recommend(book_input)
+        similar_idx = df[df_original['title'].isin(top_similar)].index.tolist()
+
+        tsne = TSNE(n_components=2, random_state=42)
+        tsne_results = tsne.fit_transform(tfidf_matrix.toarray())
+
+        plt.figure(figsize=(10, 8))
+        plt.scatter(tsne_results[:, 0], tsne_results[:, 1], color='lightgrey', alpha=0.5)
+        plt.scatter(tsne_results[similar_idx, 0], tsne_results[similar_idx, 1], color='red', label='Similar Books', s=25)
+        plt.scatter(tsne_results[target_idx, 0], tsne_results[target_idx, 1], color='blue', label=target_book, s=50)
+
+        plt.legend()
+        plt.title(f"t-SNE 2D Projection: '{target_book}' and Similar Books")
+        st.pyplot(plt)
+                
     else:
         st.warning("Please enter a book title to get recommendations.")
